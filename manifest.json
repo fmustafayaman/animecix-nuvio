@@ -1,0 +1,70 @@
+{
+  "name": "Turkish Nuvio",
+  "version": "1.7.0",
+  "scrapers": [
+    {
+      "id": "animecix",
+      "name": "Animecix",
+      "description": "Türkçe anime kaynağı — animecix.tv",
+      "version": "1.0.1",
+      "author": "turkish-nuvio",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "providers/animecix.js",
+      "enabled": true,
+      "logo": "https://animecix.tv/favicon.ico",
+      "contentLanguage": ["tr"],
+      "formats": ["mp4"],
+      "limited": false,
+      "disabledPlatforms": [],
+      "supportsExternalPlayer": true
+    },
+    {
+      "id": "fullhdfilm",
+      "name": "FullHDFilmizlesene",
+      "description": "Türkçe dublaj/altyazılı film kaynağı — fullhdfilmizlesene.life",
+      "version": "1.0.1",
+      "author": "turkish-nuvio",
+      "supportedTypes": ["movie"],
+      "filename": "providers/fullhdfilm.js",
+      "enabled": true,
+      "logo": "https://www.fullhdfilmizlesene.life/favicon.ico",
+      "contentLanguage": ["tr"],
+      "formats": ["m3u8"],
+      "limited": false,
+      "disabledPlatforms": [],
+      "supportsExternalPlayer": true
+    },
+    {
+      "id": "dizifilm",
+      "name": "Dizifilm",
+      "description": "Türkçe dublaj/altyazılı film ve dizi kaynağı — dizifilm.life",
+      "version": "1.0.1",
+      "author": "turkish-nuvio",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "providers/dizifilm.js",
+      "enabled": true,
+      "logo": "https://dizifilm.life/favicon.ico",
+      "contentLanguage": ["tr"],
+      "formats": ["m3u8"],
+      "limited": false,
+      "disabledPlatforms": [],
+      "supportsExternalPlayer": true
+    },
+    {
+      "id": "dizibal",
+      "name": "Dizibal",
+      "description": "Türkçe dublaj/altyazılı film ve dizi kaynağı — dizibal.com",
+      "version": "1.0.1",
+      "author": "turkish-nuvio",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "providers/dizibal.js",
+      "enabled": true,
+      "logo": "https://dizibal.com/favicon.ico",
+      "contentLanguage": ["tr"],
+      "formats": ["m3u8"],
+      "limited": false,
+      "disabledPlatforms": [],
+      "supportsExternalPlayer": true
+    }
+  ]
+}

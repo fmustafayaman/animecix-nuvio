@@ -1,0 +1,29 @@
+{
+  "name": "turkish-nuvio",
+  "version": "1.7.0",
+  "description": "Türkçe kaynaklar için Nuvio provider koleksiyonu (açık kaynak)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fmustafayaman/turkish-nuvio.git"
+  },
+  "scripts": {
+    "build": "node build.js",
+    "build:watch": "nodemon --watch src -e js,json --exec 'node build.js'",
+    "start": "node server.js",
+    "test": "node test_animecix.js",
+    "test:fullhdfilm": "node test_fullhdfilm.js"
+  },
+  "devDependencies": {
+    "cheerio-without-node-native": "^0.20.2",
+    "esbuild": "^0.20.0",
+    "nodemon": "^3.0.0"
+  },
+  "keywords": [
+    "nuvio",
+    "turkish",
+    "animecix",
+    "fullhdfilmizlesene",
+    "streaming"
+  ],
+  "license": "GPL-3.0"
+}

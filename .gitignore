@@ -1,0 +1,20 @@
+node_modules/
+.DS_Store
+*.log
+
+# Build artifacts (providers/ is committed for GitHub Raw)
+dist/
+
+# Editor / IDE
+.cursor/
+.vscode/
+.idea/
+
+# Local notes & scratch
+*.local.md
+tmp/
+.tmp/
+
+# Secrets
+.env
+.env.*
