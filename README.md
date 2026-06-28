@@ -12,9 +12,6 @@ Nuvio → **Eklentiler** → **Plugin manifest URL** alanına yapıştır:
 https://raw.githubusercontent.com/fmustafayaman/turkish-nuvio/main/manifest.json
 ```
 
-Repo public olduktan sonra bu URL doğrudan çalışır; ek sunucu veya deploy gerekmez.
-
-> GitHub Raw CDN bazen manifest'i birkaç dakika cache'ler. Güncelleme sonrası Nuvio'da eklentiyi yenile veya bir süre bekle.
 
 ## Kaynaklar
 
@@ -49,14 +46,6 @@ manifest.json  # eklenti kaydı
 build.js       # esbuild bundler
 server.js      # yerel geliştirme sunucusu
 ```
-
-## Notlar
-
-- **TMDB API:** Nuvio plugin runtime'ı TMDB anahtarını provider'a enjekte etmez. Başlık/IMDB eşleştirmesi için provider'larda topluluk genelinde kullanılan public TMDB anahtarı gömülüdür (kişisel anahtar değil).
-- **Domain değişimi:** FullHDFilm / Dizifilm → `src/<provider>/constants.js` içindeki `DOMAIN_CANDIDATES`.
-- **Medya tipi:** Dizifilm ve Dizibal `tv`, `series`, `show` hepsini dizi kabul eder.
-- **Altyazı:** Dizifilm, FullHDFilm, Dizibal `getSubtitles` export'u sunar.
-
 ## Katkı
 
 Pull request'ler memnuniyetle karşılanır. Yeni provider eklerken `src/<id>/` + `manifest.json` + `npm run build` akışını izleyin.
