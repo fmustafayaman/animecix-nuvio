@@ -1,6 +1,6 @@
 /**
  * animecix - Built from src/animecix/
- * Generated: 2026-06-29T12:12:07.404Z
+ * Generated: 2026-06-29T12:57:07.088Z
  */
 var __defProp = Object.defineProperty;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
@@ -282,6 +282,9 @@ function getMovieEpisodeUrl(animeId) {
     return `secure/best-video?titleId=${animeId}&episode=1&season=1`;
   });
 }
+function getEpisodeVideoUrl(animeId, season, episode) {
+  return `secure/best-video?titleId=${animeId}&episode=${episode}&season=${season}`;
+}
 function getSeasonIndices(animeId) {
   return __async(this, null, function* () {
     var _a;
@@ -407,6 +410,7 @@ function extractStreams(episodePath, animeTitle, episodeLabel) {
 function getStreams(tmdbId, mediaType = "tv", season = 1, episode = 1) {
   return __async(this, null, function* () {
     try {
+      console.log(`[Animecix] getStreams tmdb=${tmdbId} type=${mediaType} S${season}E${episode}`);
       const { title, originalTitle } = yield getTmdbInfo(tmdbId, mediaType);
       if (!title && !originalTitle)
         return [];
@@ -431,6 +435,15 @@ function getStreams(tmdbId, mediaType = "tv", season = 1, episode = 1) {
           mappedEpisode = mapping.mal_episode;
         }
       }
+      for (const epNum of [mappedEpisode, e]) {
+        const episodePath = getEpisodeVideoUrl(animeId, s, epNum);
+        const streams = yield extractStreams(episodePath, animeTitle, `B\xF6l\xFCm ${e}`);
+        if (streams.length) {
+          console.log(`[Animecix] best-video S${s}E${epNum} \u2192 ${streams.length} stream`);
+          return streams;
+        }
+      }
+      console.log("[Animecix] best-video ba\u015Far\u0131s\u0131z, b\xF6l\xFCm listesi deneniyor");
       const episodes = yield getEpisodes(animeId, s);
       if (!episodes.length)
         return [];
@@ -439,7 +452,8 @@ function getStreams(tmdbId, mediaType = "tv", season = 1, episode = 1) {
         return [];
       const episodeLabel = target.name || `B\xF6l\xFCm ${target.episodeNum || e}`;
       return yield extractStreams(target.url, animeTitle, episodeLabel);
-    } catch (e) {
+    } catch (err) {
+      console.error("[Animecix] getStreams error:", (err == null ? void 0 : err.message) || err);
       return [];
     }
   });

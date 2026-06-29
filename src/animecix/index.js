@@ -1,9 +1,11 @@
 import { getTmdbInfo, getImdbId, resolveEpisodeMapping } from './utils.js';
-import { findByTmdbId, getMovieEpisodeUrl, getEpisodes, findEpisode } from './episodes.js';
+import { findByTmdbId, getMovieEpisodeUrl, getEpisodeVideoUrl, getEpisodes, findEpisode } from './episodes.js';
 import { extractStreams } from './extractor.js';
 
 async function getStreams(tmdbId, mediaType = 'tv', season = 1, episode = 1) {
     try {
+        console.log(`[Animecix] getStreams tmdb=${tmdbId} type=${mediaType} S${season}E${episode}`);
+
         const { title, originalTitle } = await getTmdbInfo(tmdbId, mediaType);
         if (!title && !originalTitle) return [];
 
@@ -31,6 +33,19 @@ async function getStreams(tmdbId, mediaType = 'tv', season = 1, episode = 1) {
             }
         }
 
+        // Hızlı yol: best-video doğrudan bölüm embed URL'si döndürür (~200ms).
+        // Eski yol tüm sezon bölüm listesini çekiyordu (One Piece'te 1168 kayıt → yavaş/takılma).
+        for (const epNum of [mappedEpisode, e]) {
+            const episodePath = getEpisodeVideoUrl(animeId, s, epNum);
+            const streams = await extractStreams(episodePath, animeTitle, `Bölüm ${e}`);
+            if (streams.length) {
+                console.log(`[Animecix] best-video S${s}E${epNum} → ${streams.length} stream`);
+                return streams;
+            }
+        }
+
+        // Yedek: tam bölüm listesinden ara (nadir edge case'ler)
+        console.log('[Animecix] best-video başarısız, bölüm listesi deneniyor');
         const episodes = await getEpisodes(animeId, s);
         if (!episodes.length) return [];
 
@@ -39,7 +54,8 @@ async function getStreams(tmdbId, mediaType = 'tv', season = 1, episode = 1) {
 
         const episodeLabel = target.name || `Bölüm ${target.episodeNum || e}`;
         return await extractStreams(target.url, animeTitle, episodeLabel);
-    } catch {
+    } catch (err) {
+        console.error('[Animecix] getStreams error:', err?.message || err);
         return [];
     }
 }

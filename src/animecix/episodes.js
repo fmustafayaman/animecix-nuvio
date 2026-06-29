@@ -44,6 +44,10 @@ export async function getMovieEpisodeUrl(animeId) {
     return `secure/best-video?titleId=${animeId}&episode=1&season=1`;
 }
 
+export function getEpisodeVideoUrl(animeId, season, episode) {
+    return `secure/best-video?titleId=${animeId}&episode=${episode}&season=${season}`;
+}
+
 export async function getSeasonIndices(animeId) {
     try {
         const url = `${API_URL}secure/related-videos?episode=1&season=1&titleId=${animeId}&videoId=637113`;

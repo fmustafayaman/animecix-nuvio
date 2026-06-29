@@ -1,6 +1,6 @@
 /**
  * dizifilm - Built from src/dizifilm/
- * Generated: 2026-06-29T12:12:07.444Z
+ * Generated: 2026-06-29T12:57:07.125Z
  */
 var __defProp = Object.defineProperty;
 var __defProps = Object.defineProperties;
