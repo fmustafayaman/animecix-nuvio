@@ -4,18 +4,39 @@ export const DEFAULT_HEADERS = {
     'Accept-Language': 'tr-TR,tr;q=0.9,en;q=0.8'
 };
 
-export async function fetchText(url, options = {}) {
-    const response = await fetch(url, {
-        headers: {
-            ...DEFAULT_HEADERS,
-            ...options.headers
-        },
-        ...options
+// Nuvio runtime'ı tek instance; timeout'suz fetch upstream takılırsa provider
+// kilitlenir (uygulamayı aç-kapa gerektirir). AbortController bu runtime'da
+// güvenilir olmadığı için Promise.race + setTimeout kullanıyoruz.
+const DEFAULT_TIMEOUT_MS = 15000;
+
+export function withTimeout(promise, ms = DEFAULT_TIMEOUT_MS, label = '') {
+    let timer = null;
+    const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+            reject(new Error(`Timeout after ${ms}ms${label ? ` (${label})` : ''}`));
+        }, ms);
     });
+    return Promise.race([promise, timeout]).then(
+        value => { if (timer) clearTimeout(timer); return value; },
+        error => { if (timer) clearTimeout(timer); throw error; }
+    );
+}
 
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status} on ${url}`);
-    }
+export async function fetchText(url, options = {}) {
+    const { timeout = DEFAULT_TIMEOUT_MS, ...rest } = options;
+    return await withTimeout((async () => {
+        const response = await fetch(url, {
+            headers: {
+                ...DEFAULT_HEADERS,
+                ...rest.headers
+            },
+            ...rest
+        });
 
-    return await response.text();
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status} on ${url}`);
+        }
+
+        return await response.text();
+    })(), timeout, url);
 }

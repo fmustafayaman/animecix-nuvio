@@ -14,12 +14,32 @@ export function getTmdbApiKey() {
     return DEFAULT_TMDB_API_KEY;
 }
 
+// Nuvio runtime'ı tek instance; timeout'suz fetch upstream takılırsa provider
+// kilitlenir. AbortController bu runtime'da güvenilir değil, Promise.race kullanıyoruz.
+const DEFAULT_TIMEOUT_MS = 15000;
+
+export function withTimeout(promise, ms = DEFAULT_TIMEOUT_MS, label = '') {
+    let timer = null;
+    const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+            reject(new Error(`Timeout after ${ms}ms${label ? ` (${label})` : ''}`));
+        }, ms);
+    });
+    return Promise.race([promise, timeout]).then(
+        value => { if (timer) clearTimeout(timer); return value; },
+        error => { if (timer) clearTimeout(timer); throw error; }
+    );
+}
+
 export async function fetchJson(url, options = {}) {
-    const response = await fetch(url, options);
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status} on ${url}`);
-    }
-    return await response.json();
+    const { timeout = DEFAULT_TIMEOUT_MS, ...rest } = options;
+    return await withTimeout((async () => {
+        const response = await fetch(url, rest);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status} on ${url}`);
+        }
+        return await response.json();
+    })(), timeout, url);
 }
 
 export async function getTmdbInfo(tmdbId, mediaType) {

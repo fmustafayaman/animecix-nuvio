@@ -1,6 +1,6 @@
 /**
  * animecix - Built from src/animecix/
- * Generated: 2026-06-28T21:36:11.085Z
+ * Generated: 2026-06-29T11:50:35.806Z
  */
 var __defProp = Object.defineProperty;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
@@ -17,6 +17,18 @@ var __spreadValues = (a, b) => {
         __defNormalProp(a, prop, b[prop]);
     }
   return a;
+};
+var __objRest = (source, exclude) => {
+  var target = {};
+  for (var prop in source)
+    if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
+      target[prop] = source[prop];
+  if (source != null && __getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
+        target[prop] = source[prop];
+    }
+  return target;
 };
 var __async = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
@@ -66,27 +78,54 @@ function getTmdbApiKey() {
 }
 
 // src/animecix/utils.js
+var DEFAULT_TIMEOUT_MS = 15e3;
+function withTimeout(promise, ms = DEFAULT_TIMEOUT_MS, label = "") {
+  let timer = null;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`Timeout after ${ms}ms${label ? ` (${label})` : ""}`));
+    }, ms);
+  });
+  return Promise.race([promise, timeout]).then(
+    (value) => {
+      if (timer)
+        clearTimeout(timer);
+      return value;
+    },
+    (error) => {
+      if (timer)
+        clearTimeout(timer);
+      throw error;
+    }
+  );
+}
 function fetchJson(_0) {
   return __async(this, arguments, function* (url, options = {}) {
-    const response = yield fetch(url, __spreadValues({
-      headers: __spreadValues(__spreadValues({}, DEFAULT_HEADERS), options.headers)
-    }, options));
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} on ${url}`);
-    }
-    return yield response.json();
+    const _a = options, { timeout = DEFAULT_TIMEOUT_MS } = _a, rest = __objRest(_a, ["timeout"]);
+    return yield withTimeout((() => __async(this, null, function* () {
+      const response = yield fetch(url, __spreadValues({
+        headers: __spreadValues(__spreadValues({}, DEFAULT_HEADERS), rest.headers)
+      }, rest));
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} on ${url}`);
+      }
+      return yield response.json();
+    }))(), timeout, url);
   });
 }
-function fetchWithRedirect(url) {
-  return __async(this, null, function* () {
-    const response = yield fetch(url, {
-      headers: DEFAULT_HEADERS,
-      redirect: "follow"
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} on ${url}`);
-    }
-    return response.url;
+function fetchWithRedirect(_0) {
+  return __async(this, arguments, function* (url, options = {}) {
+    const { timeout = DEFAULT_TIMEOUT_MS } = options;
+    return yield withTimeout((() => __async(this, null, function* () {
+      const response = yield fetch(url, {
+        headers: DEFAULT_HEADERS,
+        redirect: "follow"
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} on ${url}`);
+      }
+      return response.url;
+    }))(), timeout, url);
   });
 }
 function getTmdbInfo(tmdbId, mediaType) {
@@ -126,7 +165,7 @@ function resolveEpisodeMapping(imdbId, season, episode) {
   return __async(this, null, function* () {
     try {
       const url = `https://id-mapping-api-malid.hf.space/api/resolve?id=${imdbId}&s=${season}&e=${episode}`;
-      const data = yield fetchJson(url);
+      const data = yield fetchJson(url, { timeout: 6e3 });
       if (data.error)
         return null;
       return data;

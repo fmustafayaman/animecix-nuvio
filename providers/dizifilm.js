@@ -1,6 +1,6 @@
 /**
  * dizifilm - Built from src/dizifilm/
- * Generated: 2026-06-28T21:36:11.138Z
+ * Generated: 2026-06-29T11:50:35.838Z
  */
 var __defProp = Object.defineProperty;
 var __defProps = Object.defineProperties;
@@ -21,6 +21,18 @@ var __spreadValues = (a, b) => {
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+var __objRest = (source, exclude) => {
+  var target = {};
+  for (var prop in source)
+    if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
+      target[prop] = source[prop];
+  if (source != null && __getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
+        target[prop] = source[prop];
+    }
+  return target;
+};
 var __async = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
     var fulfilled = (value) => {
@@ -53,13 +65,37 @@ function getTmdbApiKey() {
   }
   return DEFAULT_TMDB_API_KEY;
 }
+var DEFAULT_TIMEOUT_MS = 15e3;
+function withTimeout(promise, ms = DEFAULT_TIMEOUT_MS, label = "") {
+  let timer = null;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`Timeout after ${ms}ms${label ? ` (${label})` : ""}`));
+    }, ms);
+  });
+  return Promise.race([promise, timeout]).then(
+    (value) => {
+      if (timer)
+        clearTimeout(timer);
+      return value;
+    },
+    (error) => {
+      if (timer)
+        clearTimeout(timer);
+      throw error;
+    }
+  );
+}
 function fetchJson(_0) {
   return __async(this, arguments, function* (url, options = {}) {
-    const response = yield fetch(url, options);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} on ${url}`);
-    }
-    return yield response.json();
+    const _a = options, { timeout = DEFAULT_TIMEOUT_MS } = _a, rest = __objRest(_a, ["timeout"]);
+    return yield withTimeout((() => __async(this, null, function* () {
+      const response = yield fetch(url, rest);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} on ${url}`);
+      }
+      return yield response.json();
+    }))(), timeout, url);
   });
 }
 function getTmdbInfo(tmdbId, mediaType) {
