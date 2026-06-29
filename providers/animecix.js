@@ -1,6 +1,6 @@
 /**
  * animecix - Built from src/animecix/
- * Generated: 2026-06-29T12:57:07.088Z
+ * Generated: 2026-06-29T13:01:59.552Z
  */
 var __defProp = Object.defineProperty;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
@@ -427,27 +427,41 @@ function getStreams(tmdbId, mediaType = "tv", season = 1, episode = 1) {
       }
       const s = season || 1;
       const e = episode || 1;
-      let mappedEpisode = e;
-      const imdbId = yield getImdbId(tmdbId, mediaType);
-      if (imdbId) {
-        const mapping = yield resolveEpisodeMapping(imdbId, s, e);
-        if (mapping == null ? void 0 : mapping.mal_episode) {
-          mappedEpisode = mapping.mal_episode;
-        }
+      const directStreams = yield extractStreams(
+        getEpisodeVideoUrl(animeId, s, e),
+        animeTitle,
+        `B\xF6l\xFCm ${e}`
+      );
+      if (directStreams.length) {
+        console.log(`[Animecix] best-video S${s}E${e} \u2192 ${directStreams.length} stream`);
+        return directStreams;
       }
-      for (const epNum of [mappedEpisode, e]) {
-        const episodePath = getEpisodeVideoUrl(animeId, s, epNum);
-        const streams = yield extractStreams(episodePath, animeTitle, `B\xF6l\xFCm ${e}`);
-        if (streams.length) {
-          console.log(`[Animecix] best-video S${s}E${epNum} \u2192 ${streams.length} stream`);
-          return streams;
+      console.log("[Animecix] best-video ham numarada bo\u015F, mapping deneniyor");
+      try {
+        const imdbId = yield getImdbId(tmdbId, mediaType);
+        if (imdbId) {
+          const mapping = yield resolveEpisodeMapping(imdbId, s, e);
+          const mappedEpisode = mapping == null ? void 0 : mapping.mal_episode;
+          if (mappedEpisode && mappedEpisode !== e) {
+            const mappedStreams = yield extractStreams(
+              getEpisodeVideoUrl(animeId, s, mappedEpisode),
+              animeTitle,
+              `B\xF6l\xFCm ${e}`
+            );
+            if (mappedStreams.length) {
+              console.log(`[Animecix] best-video (mapped ${mappedEpisode}) \u2192 ${mappedStreams.length} stream`);
+              return mappedStreams;
+            }
+          }
         }
+      } catch (mapErr) {
+        console.error("[Animecix] mapping hatas\u0131 (yok say\u0131l\u0131yor):", (mapErr == null ? void 0 : mapErr.message) || mapErr);
       }
-      console.log("[Animecix] best-video ba\u015Far\u0131s\u0131z, b\xF6l\xFCm listesi deneniyor");
+      console.log("[Animecix] mapping de bo\u015F, b\xF6l\xFCm listesi deneniyor");
       const episodes = yield getEpisodes(animeId, s);
       if (!episodes.length)
         return [];
-      const target = findEpisode(episodes, s, e, mappedEpisode);
+      const target = findEpisode(episodes, s, e, e);
       if (!(target == null ? void 0 : target.url))
         return [];
       const episodeLabel = target.name || `B\xF6l\xFCm ${target.episodeNum || e}`;

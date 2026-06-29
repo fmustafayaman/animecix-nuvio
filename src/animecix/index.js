@@ -23,33 +23,48 @@ async function getStreams(tmdbId, mediaType = 'tv', season = 1, episode = 1) {
 
         const s = season || 1;
         const e = episode || 1;
-        let mappedEpisode = e;
 
-        const imdbId = await getImdbId(tmdbId, mediaType);
-        if (imdbId) {
-            const mapping = await resolveEpisodeMapping(imdbId, s, e);
-            if (mapping?.mal_episode) {
-                mappedEpisode = mapping.mal_episode;
-            }
+        // 1) Mutlu yol: best-video ile ham bölüm numarasını dene.
+        // Yalnızca güvenilir servislere dokunur (TMDB + animecix). Üçüncü-parti
+        // mapping servisine (uykuya dalıp fetch'i sonsuza asabilen HF Space)
+        // bilerek HİÇ dokunmaz; çoğu dizide doğru sonucu zaten bu verir.
+        const directStreams = await extractStreams(
+            getEpisodeVideoUrl(animeId, s, e), animeTitle, `Bölüm ${e}`
+        );
+        if (directStreams.length) {
+            console.log(`[Animecix] best-video S${s}E${e} → ${directStreams.length} stream`);
+            return directStreams;
         }
 
-        // Hızlı yol: best-video doğrudan bölüm embed URL'si döndürür (~200ms).
-        // Eski yol tüm sezon bölüm listesini çekiyordu (One Piece'te 1168 kayıt → yavaş/takılma).
-        for (const epNum of [mappedEpisode, e]) {
-            const episodePath = getEpisodeVideoUrl(animeId, s, epNum);
-            const streams = await extractStreams(episodePath, animeTitle, `Bölüm ${e}`);
-            if (streams.length) {
-                console.log(`[Animecix] best-video S${s}E${epNum} → ${streams.length} stream`);
-                return streams;
+        // 2) Son çare: MAL bölüm eşlemesi (TMDB↔MAL numaralandırması farklıysa).
+        // Bu adım riskli üçüncü-parti servise dokunur, o yüzden yalnızca mutlu
+        // yol başarısız olduğunda çalışır.
+        console.log('[Animecix] best-video ham numarada boş, mapping deneniyor');
+        try {
+            const imdbId = await getImdbId(tmdbId, mediaType);
+            if (imdbId) {
+                const mapping = await resolveEpisodeMapping(imdbId, s, e);
+                const mappedEpisode = mapping?.mal_episode;
+                if (mappedEpisode && mappedEpisode !== e) {
+                    const mappedStreams = await extractStreams(
+                        getEpisodeVideoUrl(animeId, s, mappedEpisode), animeTitle, `Bölüm ${e}`
+                    );
+                    if (mappedStreams.length) {
+                        console.log(`[Animecix] best-video (mapped ${mappedEpisode}) → ${mappedStreams.length} stream`);
+                        return mappedStreams;
+                    }
+                }
             }
+        } catch (mapErr) {
+            console.error('[Animecix] mapping hatası (yok sayılıyor):', mapErr?.message || mapErr);
         }
 
-        // Yedek: tam bölüm listesinden ara (nadir edge case'ler)
-        console.log('[Animecix] best-video başarısız, bölüm listesi deneniyor');
+        // 3) Yedek: tam bölüm listesinden ara (nadir edge case'ler)
+        console.log('[Animecix] mapping de boş, bölüm listesi deneniyor');
         const episodes = await getEpisodes(animeId, s);
         if (!episodes.length) return [];
 
-        const target = findEpisode(episodes, s, e, mappedEpisode);
+        const target = findEpisode(episodes, s, e, e);
         if (!target?.url) return [];
 
         const episodeLabel = target.name || `Bölüm ${target.episodeNum || e}`;
