@@ -1,6 +1,6 @@
 /**
  * dizifilm - Built from src/dizifilm/
- * Generated: 2026-06-29T11:50:35.838Z
+ * Generated: 2026-06-29T12:00:36.418Z
  */
 var __defProp = Object.defineProperty;
 var __defProps = Object.defineProperties;
@@ -67,6 +67,9 @@ function getTmdbApiKey() {
 }
 var DEFAULT_TIMEOUT_MS = 15e3;
 function withTimeout(promise, ms = DEFAULT_TIMEOUT_MS, label = "") {
+  if (typeof setTimeout !== "function") {
+    return Promise.resolve(promise);
+  }
   let timer = null;
   const timeout = new Promise((_, reject) => {
     timer = setTimeout(() => {

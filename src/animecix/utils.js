@@ -8,6 +8,12 @@ import { getTmdbApiKey } from '../shared/tmdb.js';
 const DEFAULT_TIMEOUT_MS = 15000;
 
 export function withTimeout(promise, ms = DEFAULT_TIMEOUT_MS, label = '') {
+    // Nuvio plugin sandbox'ında setTimeout her zaman tanımlı değil (sadece fetch
+    // ve console garanti). Yoksa timeout'suz devam et; aksi halde withTimeout'un
+    // kendisi ReferenceError fırlatıp TÜM provider'ları çökertir.
+    if (typeof setTimeout !== 'function') {
+        return Promise.resolve(promise);
+    }
     let timer = null;
     const timeout = new Promise((_, reject) => {
         timer = setTimeout(() => {

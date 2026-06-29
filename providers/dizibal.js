@@ -1,6 +1,6 @@
 /**
  * dizibal - Built from src/dizibal/
- * Generated: 2026-06-29T11:50:35.836Z
+ * Generated: 2026-06-29T12:00:36.416Z
  */
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
@@ -51,6 +51,9 @@ function getTmdbApiKey() {
 }
 var DEFAULT_TIMEOUT_MS = 15e3;
 function withTimeout(promise, ms = DEFAULT_TIMEOUT_MS, label = "") {
+  if (typeof setTimeout !== "function") {
+    return Promise.resolve(promise);
+  }
   let timer = null;
   const timeout = new Promise((_, reject) => {
     timer = setTimeout(() => {
